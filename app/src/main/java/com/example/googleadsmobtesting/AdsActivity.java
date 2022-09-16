@@ -12,7 +12,9 @@ import androidx.annotation.Nullable;
 
 import com.example.googleadsmobtesting.databinding.ActMainBinding;
 import com.google.android.gms.ads.AdError;
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
@@ -28,20 +30,24 @@ public class AdsActivity extends Activity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActMainBinding.inflate(LayoutInflater.from(this));
-        setContentView(binding.getRoot());
 
+        setContentView(binding.getRoot());
         MobileAds.initialize(
                 this,
-                new OnInitializationCompleteListener() {
-                    @Override
-                    public void onInitializationComplete(InitializationStatus initializationStatus) {}
-                });
+                initializationStatus -> {});
 
         appOpenAdManager = new AppOpenAdManager();
         preLoadAppOpenAds();
+
+        MobileAds.initialize(this, new OnInitializationCompleteListener() {
+            @Override
+            public void onInitializationComplete(InitializationStatus initializationStatus) {
+            }
+        });
+
+        AdRequest adRequest = new AdRequest.Builder().build();
+        binding.adView.loadAd(adRequest);
         initEvents();
-
-
     }
 
     private void initEvents(){

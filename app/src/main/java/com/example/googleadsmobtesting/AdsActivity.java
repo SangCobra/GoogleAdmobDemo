@@ -1,7 +1,7 @@
 package com.example.googleadsmobtesting;
 
 import android.app.Activity;
-import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,9 +12,7 @@ import androidx.annotation.Nullable;
 
 import com.example.googleadsmobtesting.databinding.ActMainBinding;
 import com.google.android.gms.ads.AdError;
-import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
@@ -29,34 +27,34 @@ public class AdsActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActMainBinding.inflate(LayoutInflater.from(this));
 
+        binding = ActMainBinding.inflate(LayoutInflater.from(this));
         setContentView(binding.getRoot());
+
         MobileAds.initialize(
                 this,
-                initializationStatus -> {});
-
+                initializationStatus -> {
+                });
         appOpenAdManager = new AppOpenAdManager();
-        preLoadAppOpenAds();
 
-        MobileAds.initialize(this, new OnInitializationCompleteListener() {
-            @Override
-            public void onInitializationComplete(InitializationStatus initializationStatus) {
-            }
-        });
-
+        showAppOpenAds();
         AdRequest adRequest = new AdRequest.Builder().build();
         binding.adView.loadAd(adRequest);
-        initEvents();
+
+        initEvent();
     }
 
-    private void initEvents(){
-        binding.appOpenAds.setOnClickListener(view ->
-               appOpenAdManager.showAdIfAvailable(AdsActivity.this)
-        );
+    private void initEvent() {
+        binding.nativeAds.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(AdsActivity.this, ShowNativeAdsAct.class));
+            }
+        });
     }
 
-    private void preLoadAppOpenAds(){
+
+    private void showAppOpenAds() {
         appOpenAdManager.loadAd(this);
     }
 
@@ -67,17 +65,19 @@ public class AdsActivity extends Activity {
         private AppOpenAd appOpenAd = null;
 
 
-        /** Constructor. */
+        /**
+         * Constructor.
+         */
         public AppOpenAdManager() {
         }
 
-        public void showAdIfAvailable(@NonNull final Activity activity){
+        public void showAdIfAvailable(@NonNull final Activity activity) {
 
             appOpenAd.setFullScreenContentCallback(
                     new FullScreenContentCallback() {
                         @Override
                         public void onAdDismissedFullScreenContent() {
-                            loadAd(activity);
+
                         }
 
                         @Override
@@ -96,12 +96,14 @@ public class AdsActivity extends Activity {
             appOpenAd.show(activity);
         }
 
-        /** Request an ad. */
-        private void loadAd(Context context) {
+        /**
+         * Request an ad.
+         */
+        private void loadAd(Activity activity) {
 
             AdRequest request = new AdRequest.Builder().build();
             AppOpenAd.load(
-                    context, AD_UNIT_ID, request,
+                    activity, AD_UNIT_ID, request,
                     AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT,
                     new AppOpenAd.AppOpenAdLoadCallback() {
                         @Override
@@ -110,6 +112,7 @@ public class AdsActivity extends Activity {
                             Log.d(LOG_TAG, "Ad was loaded.");
                             appOpenAd = ad;
 
+                            showAdIfAvailable(activity);
                         }
 
                         @Override
@@ -120,13 +123,6 @@ public class AdsActivity extends Activity {
                     });
         }
 
-        /** Check if ad exists and can be shown. */
-        private boolean isAdAvailable() {
-            return appOpenAd != null;
-        }
     }
 
-    public interface OnShowAdCompleteListener {
-        void onShowAdComplete();
-    }
 }

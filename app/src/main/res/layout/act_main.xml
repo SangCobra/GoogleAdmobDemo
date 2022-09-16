@@ -4,51 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-    <Button
-        android:id="@+id/native_ads"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Native Ads"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/app_open_ads"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-       />
-
-    <Button
-        android:id="@+id/app_open_ads"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="App Open Ads"
-        app:layout_constraintTop_toBottomOf="@id/native_ads"
-        app:layout_constraintBottom_toTopOf="@id/banner"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-
-      />
-
-    <Button
-        android:id="@+id/banner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Banner"
-        app:layout_constraintTop_toBottomOf="@id/app_open_ads"
-        app:layout_constraintBottom_toTopOf="@id/interstisial"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-      />
-
-    <Button
-        android:id="@+id/interstisial"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Interstisial"
-        app:layout_constraintTop_toBottomOf="@id/banner"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-    />
     <com.google.android.gms.ads.AdView
         xmlns:ads="http://schemas.android.com/apk/res-auto"
         android:id="@+id/adView"
@@ -60,4 +15,28 @@
         ads:adSize="BANNER"
         ads:adUnitId="ca-app-pub-3940256099942544/6300978111">
     </com.google.android.gms.ads.AdView>
+
+    <Button
+        android:id="@+id/native_ads"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Native Ads"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/interstisial"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+       />
+
+    <Button
+        android:id="@+id/interstisial"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Interstisial"
+        android:layout_marginBottom="120dp"
+        app:layout_constraintTop_toBottomOf="@id/native_ads"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+    />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

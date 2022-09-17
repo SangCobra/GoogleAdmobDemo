@@ -11,6 +11,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.BillingClientStateListener;
+import com.android.billingclient.api.BillingFlowParams;
+import com.android.billingclient.api.BillingResult;
+import com.android.billingclient.api.ProductDetails;
+import com.android.billingclient.api.ProductDetailsResponseListener;
+import com.android.billingclient.api.QueryProductDetailsParams;
 import com.example.googleadsmobtesting.databinding.ActMainBinding;
 import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
@@ -19,19 +26,23 @@ import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.OnUserEarnedRewardListener;
 import com.google.android.gms.ads.appopen.AppOpenAd;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
-import com.google.android.gms.ads.interstitial.InterstitialAd;
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.gms.ads.rewarded.RewardItem;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class AdsActivity extends Activity {
     private static final String TAG = "AdsActivity";
     private AppOpenAdManager appOpenAdManager;
     private ActMainBinding binding;
     private RewardedAd mRewardedAd;
+
+    private BillingClient billingClient;
+    private ProductDetails productDetails;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,14 +55,80 @@ public class AdsActivity extends Activity {
 
         appOpenAdManager = new AppOpenAdManager();
         showAppOpenAds();
-        
+
         showAdBanner();
 
         loadAdReward();
-        
+
         initEvent();
 
-        
+        initBillingService();
+        connectBillingService();
+    }
+
+    private void initBillingService() {
+        billingClient = BillingClient.newBuilder(this)
+                .setListener((billingResult, list) -> {
+
+                })
+                .enablePendingPurchases()
+                .build();
+    }
+
+    private void connectBillingService() {
+        billingClient.startConnection(new BillingClientStateListener() {
+            @Override
+            public void onBillingSetupFinished(BillingResult billingResult) {
+                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                    // The BillingClient is ready. You can query purchases here.
+                    QueryProductDetailsParams queryProductDetailsParams =
+                            QueryProductDetailsParams.newBuilder()
+                                    .setProductList(
+                                            Arrays.asList(QueryProductDetailsParams.Product.newBuilder()
+                                                    .setProductId("android.test.purchased")
+                                                    .setProductType(BillingClient.ProductType.INAPP)
+                                                    .build())
+                                    )
+                                    .build();
+
+                    billingClient.queryProductDetailsAsync(
+                            queryProductDetailsParams,
+                            new ProductDetailsResponseListener() {
+                                public void onProductDetailsResponse(BillingResult billingResult,
+                                                                     List<ProductDetails> productDetailsList) {
+                                    // check billingResult
+                                    // process returned productDetailsList
+                                    if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                                        AdsActivity.this.productDetails = productDetailsList.get(0);
+                                    }
+                                }
+                            }
+                    );
+
+                } else {
+                    connectBillingService();
+                }
+            }
+
+            @Override
+            public void onBillingServiceDisconnected() {
+                // Try to restart the connection on the next request to
+                // Google Play by calling the startConnection() method.
+                System.out.println("Disconnect!!");
+            }
+        });
+    }
+
+    private void showBilling() {
+        List<BillingFlowParams.ProductDetailsParams> productDetailsParamsList = Collections.singletonList(BillingFlowParams.ProductDetailsParams.newBuilder()
+                .setProductDetails(productDetails)
+                .build());
+
+        BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
+                .setProductDetailsParamsList(productDetailsParamsList)
+                .build();
+
+        BillingResult billingResult = billingClient.launchBillingFlow(this, billingFlowParams);
     }
 
     private void loadAdReward() {
@@ -71,7 +148,7 @@ public class AdsActivity extends Activity {
                 });
     }
 
-    private void onAdRewardLoaded(){
+    private void onAdRewardLoaded() {
         mRewardedAd.setFullScreenContentCallback(new FullScreenContentCallback() {
 
             @Override
@@ -91,7 +168,7 @@ public class AdsActivity extends Activity {
             public void onAdFailedToShowFullScreenContent(AdError adError) {
                 // Called when ad fails to show.
                 Log.e(TAG, "Ad failed to show fullscreen content.");
-                Toast.makeText(AdsActivity.this, adError.getMessage(),Toast.LENGTH_LONG).show();
+                Toast.makeText(AdsActivity.this, adError.getMessage(), Toast.LENGTH_LONG).show();
             }
 
             @Override
@@ -147,6 +224,13 @@ public class AdsActivity extends Activity {
                 } else {
                     Log.d(TAG, "The rewarded ad wasn't ready yet.");
                 }
+            }
+        });
+
+        binding.purchase.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showBilling();
             }
         });
     }
